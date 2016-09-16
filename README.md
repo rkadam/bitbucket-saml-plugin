@@ -2,7 +2,7 @@
 SAML Connector to enable using Bitbucket server with Single Signon / Identity Provider
 
 #### Deploying / Using this plugin with your Bitbucket Server
-* Make sure you have ip-metadata.xml and sp-metadata.xml available within your application.
+* Make sure you have *ip-metadata.xml* and *sp-metadata.xml* available within your application.
   * For example these files can be put into base directory of standard Bitbucket installation.
   * ip-metadata.xml provides information about your IDP Provider and how it's configured to connect to Bitbucket server.
     * Should contain information such as x509 certificate, HTTP-POST/Redirect/SOAP Binding information for SingleSignOnService and SingleLogoutService
