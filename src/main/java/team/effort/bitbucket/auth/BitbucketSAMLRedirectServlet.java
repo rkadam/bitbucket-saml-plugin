@@ -1,4 +1,4 @@
-package com.pandora.bitbucket.auth;
+package team.effort.bitbucket.auth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +44,7 @@ public class BitbucketSAMLRedirectServlet extends HttpServlet{
             // great, go back to wherever we started.
             //request.setAttribute("loggedInUser", jiraAuthenticationContext.getLoggedInUser() == null ? null : jiraAuthenticationContext.getLoggedInUser().getDisplayName());
             String originalUrl = request.getParameter("RelayState");
+            log.debug("Original URL from RelayState - " + originalUrl);
             if (originalUrl == null)
                 originalUrl = "/";
 

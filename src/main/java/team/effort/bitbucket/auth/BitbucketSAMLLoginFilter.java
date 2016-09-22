@@ -1,4 +1,4 @@
-package com.pandora.bitbucket.auth;
+package team.effort.bitbucket.auth;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.atlassian.bitbucket.i18n.I18nService;
 import com.atlassian.bitbucket.user.UserService;
 
-import com.pandora.bitbucket.auth.BitbucketSAMLHandler;
+import team.effort.bitbucket.auth.BitbucketSAMLHandler;
 
 public class BitbucketSAMLLoginFilter implements Filter {
 
@@ -46,8 +46,8 @@ public class BitbucketSAMLLoginFilter implements Filter {
 
         if (idpRequired == true) {
             try {
-                String url = new BitbucketSAMLHandler(i18nService, userService).getRedirectUrl(request.getParameter("os_destination"));
-                log.debug("saml_login: redirecting user to " + url);
+                String url = new BitbucketSAMLHandler(i18nService, userService).getRedirectUrl(request.getParameter("next"));
+                log.debug("saml_login -> User trying to access URL - " + url);
                 res.sendRedirect(res.encodeRedirectURL(url));
             } catch (Exception e) {
                 e.printStackTrace();

@@ -1,4 +1,4 @@
-package com.pandora.bitbucket.auth;
+package team.effort.bitbucket.auth;
 
 import com.lastpass.saml.SAMLInit;
 import com.lastpass.saml.SAMLClient;
