@@ -10,9 +10,17 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
+import com.atlassian.bitbucket.auth.AuthenticationContext;
+import com.atlassian.bitbucket.user.ApplicationUser;
+
 public class BitbucketSAMLRedirectServlet extends HttpServlet{
     private static final Logger log = LoggerFactory.getLogger(BitbucketSAMLRedirectServlet.class);
-    private static final String KEY_CONTAINER_AUTH_NAME = "auth.container.remote-user";
+
+    private final AuthenticationContext bitbucketAuthenticationContext;
+
+    public BitbucketSAMLRedirectServlet( AuthenticationContext bitbucketAuthenticationContext){
+        this.bitbucketAuthenticationContext = bitbucketAuthenticationContext;
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -30,19 +38,15 @@ public class BitbucketSAMLRedirectServlet extends HttpServlet{
         // Otherwise, we display an error page.
         log.debug("BitbucketSAMLRedirectServlet - doGet(): Returning from SAML Authentication.");
 
-        //final JiraAuthenticationContext jiraAuthenticationContext = ComponentManager.getComponentInstanceOfType(JiraAuthenticationContext.class);
-        //if (jiraAuthenticationContext.getLoggedInUser() != null) {
-
         // verify SAMLResponse
-        // How to verify if BitBucket has this user loggedIn or not, the way jiraAuthenticationContext is being useful for JIRA.
-        // Right now we will use session attribute that we set in authHandler. But need to find if there is any better way to get this done.
-        HttpSession session = request.getSession(false);
-        if ((session != null) && session.getAttribute(KEY_CONTAINER_AUTH_NAME) != null) {
+        boolean isUserAuthenticated = bitbucketAuthenticationContext.isAuthenticated();
+        ApplicationUser authenticatedUser = bitbucketAuthenticationContext.getCurrentUser();
+
+        if (isUserAuthenticated && (authenticatedUser != null) ) {
 
             log.debug("Valid BitBucket User. We will redirect user to right place.");
 
             // great, go back to wherever we started.
-            //request.setAttribute("loggedInUser", jiraAuthenticationContext.getLoggedInUser() == null ? null : jiraAuthenticationContext.getLoggedInUser().getDisplayName());
             String originalUrl = request.getParameter("RelayState");
             log.debug("Original URL from RelayState - " + originalUrl);
             if (originalUrl == null)
@@ -57,5 +61,4 @@ public class BitbucketSAMLRedirectServlet extends HttpServlet{
             response.getWriter().write("<html><body>Sorry, we were unable to validate your account.</body></html>");
         }
     }
-
 }

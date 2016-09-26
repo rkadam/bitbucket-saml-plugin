@@ -37,15 +37,19 @@ import java.io.IOException;
 public class BitbucketSAMLHandler implements HttpAuthenticationHandler, HttpAuthenticationSuccessHandler {
 
     private SAMLClient client;
-    private static final String KEY_CONTAINER_AUTH_NAME = "auth.container.remote-user";
     private static final Logger log = LoggerFactory.getLogger(BitbucketSAMLHandler.class);
 
     private final I18nService i18nService;
     private final UserService userService;
+    private final AuthenticationContext bitbucketAuthenticationContext;
 
-    public BitbucketSAMLHandler(I18nService i18nService, UserService userService) throws SAMLException {
+
+    public BitbucketSAMLHandler(I18nService i18nService,
+                                UserService userService,
+                                AuthenticationContext bitbucketAuthenticationContext) throws SAMLException {
         this.i18nService = i18nService;
         this.userService = userService;
+        this.bitbucketAuthenticationContext = bitbucketAuthenticationContext;
 
         SAMLInit.initialize();
 
@@ -114,16 +118,13 @@ public class BitbucketSAMLHandler implements HttpAuthenticationHandler, HttpAuth
         log.debug("authenticate() for BitbucketSAMLHandler. start...");
 
         HttpServletRequest request = httpAuthenticationContext.getRequest();
-        HttpSession session = httpAuthenticationContext.getRequest().getSession(false);
-        if ((session != null) && session.getAttribute(KEY_CONTAINER_AUTH_NAME) != null) {
-            log.debug("authenticate() - valid session");
-            String authenticatedUserId = (String) session.getAttribute(KEY_CONTAINER_AUTH_NAME);
-            log.debug("authenticate() - user = " + authenticatedUserId);
-            ApplicationUser user = userService.getUserByName(authenticatedUserId);
-            if (user != null) {
-                log.debug("authenticate() - valid application user. Returning with this user.");
-                return user;
-            }
+
+        boolean isUserAuthenticated = bitbucketAuthenticationContext.isAuthenticated();
+        ApplicationUser authenticatedUser = bitbucketAuthenticationContext.getCurrentUser();
+
+        if (isUserAuthenticated && (authenticatedUser != null) ) {
+            log.debug("authenticate() - valid session - " + authenticatedUser);
+            return authenticatedUser;
         }
 
         if (request.getParameter("SAMLResponse") == null) {
@@ -156,46 +157,32 @@ public class BitbucketSAMLHandler implements HttpAuthenticationHandler, HttpAuth
             return null;
         }
 
-        request.setAttribute(KEY_CONTAINER_AUTH_NAME, username);
         log.debug("authenticate() for BitbucketSAMLHandler. end...");
         return user;
     }
 
     @Override
     public void validateAuthentication(@Nonnull HttpAuthenticationContext httpAuthenticationContext) {
-        log.debug("validateAuthentication() - start...");
-        HttpSession session = httpAuthenticationContext.getRequest().getSession(false);
-        if (session == null) {
-            // nothing to validate - the user wasn't authenticated by this authentication handler
-            log.debug("No session present. User is not authenticated by this auth handler...");
-            return;
-        }
+        //No need to implement any logic here
+        //Reference: https://github.com/rkadam/bitbucket-saml-plugin/issues/3
 
-        String sessionUser = (String) session.getAttribute(KEY_CONTAINER_AUTH_NAME);
-        String remoteUser = httpAuthenticationContext.getRequest().getRemoteUser();
-        log.debug("validateAuthentication() - sessionUser - " + sessionUser + " remoteUser - " + remoteUser);
-        if (sessionUser != null && !Objects.equal(sessionUser, remoteUser)) {
-            throw new ExpiredAuthenticationException(i18nService.getKeyedText("container.auth.usernamenomatch",
-                    "Session username '{0}' does not match username provided by the container '{1}'",
-                    sessionUser, remoteUser));
-        }
+        /*
+        log.debug("validateAuthentication() - start...");
         log.debug("validateAuthentication() - end");
+        */
     }
 
     @Override
     public boolean onAuthenticationSuccess(@Nonnull HttpAuthenticationSuccessContext context) throws ServletException, IOException {
-        // if this authentication handler was responsible for the authentication, an attribute has been stored on the
-        // request. If that's the case, persist it in the session so it can be used in future authentication validations
+        //Nothing to do here right now!
 
-        log.debug("onAuthenticationSuccess() - start...");
-        String authenticationUser = (String) context.getRequest().getAttribute(KEY_CONTAINER_AUTH_NAME);
-        log.debug("onAuthenticationSuccess() - authenticationUser - " + authenticationUser);
-        if (authenticationUser != null) {
-            log.debug("onAuthenticationSuccess() - setting session attribute");
-            context.getRequest().getSession().setAttribute(KEY_CONTAINER_AUTH_NAME, authenticationUser);
-        }
-
-        log.debug("onAuthenticationSuccess() - end.");
+        //TODO: Possible way to use this method is do redirection here instead of in BitbucketSAMLLoginFilter
+        /**
+         *  Feedback from Michael Heemskerk
+         *  I _think_ you could change your onAuthenticationSuccess to look at the RelayState parameter directly
+         *  and manage the redirect from there. That way, you wouldn't need the separate SAMLRedirectFilter.
+         *  What you have works fine though, just a suggestion.
+         */
 
         //Returning 'false' helps to pass control to other success handlers further down the chain!
         return false;

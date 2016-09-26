@@ -18,18 +18,25 @@ import org.slf4j.LoggerFactory;
 
 import com.atlassian.bitbucket.i18n.I18nService;
 import com.atlassian.bitbucket.user.UserService;
+import com.atlassian.bitbucket.auth.AuthenticationContext;
 
 import team.effort.bitbucket.auth.BitbucketSAMLHandler;
 
 public class BitbucketSAMLLoginFilter implements Filter {
 
-    private final I18nService i18nService;
-    private final UserService userService;
     private static final Logger log = LoggerFactory.getLogger(BitbucketSAMLLoginFilter.class);
 
-    public BitbucketSAMLLoginFilter(I18nService i18nService, UserService userService){
+    private final I18nService i18nService;
+    private final UserService userService;
+    private final AuthenticationContext bitbucketAuthenticationContext;
+
+
+    public BitbucketSAMLLoginFilter(I18nService i18nService,
+                                    UserService userService,
+                                    AuthenticationContext bitbucketAuthenticationContext ){
         this.i18nService = i18nService;
         this.userService = userService;
+        this.bitbucketAuthenticationContext = bitbucketAuthenticationContext;
     }
 
     @Override
@@ -46,7 +53,7 @@ public class BitbucketSAMLLoginFilter implements Filter {
 
         if (idpRequired == true) {
             try {
-                String url = new BitbucketSAMLHandler(i18nService, userService).getRedirectUrl(request.getParameter("next"));
+                String url = new BitbucketSAMLHandler(i18nService, userService, bitbucketAuthenticationContext).getRedirectUrl(request.getParameter("next"));
                 log.debug("saml_login -> User trying to access URL - " + url);
                 res.sendRedirect(res.encodeRedirectURL(url));
             } catch (Exception e) {
