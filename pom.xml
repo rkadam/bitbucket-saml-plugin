@@ -5,11 +5,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>bitbucket</groupId>
-    <artifactId>saml.plugin</artifactId>
-    <version>0.0.1-development-SNAPSHOT</version>
+    <groupId>team.effort</groupId>
+    <artifactId>bitbucket-saml-plugin</artifactId>
+    <version>0.0.2-development-SNAPSHOT</version>
     <organization>
-        <name></name>
+        <name>Raju Kadam</name>
         <url>https://github.com/rkadam/bitbucket-saml-plugin</url>
     </organization>
     <name>bitbucket-saml-plugin</name>
@@ -24,18 +24,67 @@
             <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
-    
+
+    <distributionManagement>
+        <repository>
+            <id>local-repo</id>
+            <name>LocalDir</name>
+            <url>file://${project.basedir}/dist-maven</url>
+        </repository>
+    </distributionManagement>
+    <repositories>
+        <repository>
+            <id>atlassian-public</id>
+            <url>qe3</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+        </repository>
+    </repositories>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.atlassian.bitbucket.server</groupId>
+                <artifactId>bitbucket-parent</artifactId>
+                <version>${bitbucket.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
+        <!-- PROD // -->
         <dependency>
             <groupId>com.lastpass</groupId>
             <artifactId>saml-sdk-java</artifactId>
             <version>1.0</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.velocity</groupId>
+                    <artifactId>velocity</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.applinks</groupId>
+            <artifactId>applinks-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.templaterenderer</groupId>
+            <artifactId>atlassian-template-renderer-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.atlassian.bitbucket.server</groupId>
             <artifactId>bitbucket-api</artifactId>
-            <version>${bitbucket.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -45,43 +94,54 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.atlassian.bitbucket.server</groupId>
-            <artifactId>bitbucket-page-objects</artifactId>
-            <version>${bitbucket.version}</version>
+            <groupId>com.atlassian.sal</groupId>
+            <artifactId>sal-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>jsr311-api</artifactId>
+            <version>1.1.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- TEST // -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>4.12</version>
             <scope>test</scope>
-        </dependency> 
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring</artifactId>
-            <version>2.5.6</version>
-            <scope>provided</scope>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.8.5</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.atlassian.templaterenderer</groupId>
-            <artifactId>atlassian-template-renderer-api</artifactId>
-            <version>1.3.1</version>
-            <scope>provided</scope>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.3.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>1.19</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -96,18 +156,39 @@
                             <instanceId>bitbucket</instanceId>
                             <version>${bitbucket.version}</version>
                             <dataVersion>${bitbucket.data.version}</dataVersion>
-                        </product>  
+                        </product>
                     </products>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.17</version>
+            </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
-    
     <properties>
-        <jdk.level>1.8</jdk.level>
         <bitbucket.version>4.9.1</bitbucket.version>
-        <bitbucket.data.version>4.9.1</bitbucket.data.version>
+        <bitbucket.data.version>${bitbucket.version}</bitbucket.data.version>
         <amps.version>6.2.2</amps.version>
     </properties>
-    
+
 </project>

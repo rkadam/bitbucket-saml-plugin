@@ -13,6 +13,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.atlassian.sal.api.pluginsettings.PluginSettings;
+import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +23,9 @@ import com.atlassian.bitbucket.user.UserService;
 import com.atlassian.bitbucket.auth.AuthenticationContext;
 
 import team.effort.bitbucket.auth.BitbucketSAMLHandler;
+import team.effort.bitbucket.config.BitbucketSAMLAdminConfigResource;
+
+import static team.effort.bitbucket.config.BitbucketSAMLAdminServlet.PLUGIN_STORAGE_KEY;
 
 public class BitbucketSAMLLoginFilter implements Filter {
 
@@ -29,12 +34,15 @@ public class BitbucketSAMLLoginFilter implements Filter {
     private final I18nService i18nService;
     private final UserService userService;
     private final AuthenticationContext bitbucketAuthenticationContext;
+    private final PluginSettingsFactory pluginSettingsFactory;
 
 
     public BitbucketSAMLLoginFilter(I18nService i18nService,
+                                    PluginSettingsFactory pluginSettingsFactory,
                                     UserService userService,
                                     AuthenticationContext bitbucketAuthenticationContext ){
         this.i18nService = i18nService;
+        this.pluginSettingsFactory = pluginSettingsFactory;
         this.userService = userService;
         this.bitbucketAuthenticationContext = bitbucketAuthenticationContext;
     }
@@ -46,12 +54,14 @@ public class BitbucketSAMLLoginFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
                          FilterChain chain) throws IOException, ServletException {
-        boolean idpRequired = true;
+        //boolean idpRequired = true;
 
         HttpServletRequest req = (HttpServletRequest)request;
         HttpServletResponse res = (HttpServletResponse)response;
 
-        if (idpRequired == true) {
+        PluginSettings settings = pluginSettingsFactory.createGlobalSettings();
+        String idpRequired = (String) settings.get(PLUGIN_STORAGE_KEY + ".enforceSSO");
+        if (idpRequired != null & idpRequired.equalsIgnoreCase("true")){
             try {
                 String url = new BitbucketSAMLHandler(i18nService, userService, bitbucketAuthenticationContext).getRedirectUrl(request.getParameter("next"));
                 log.debug("saml_login -> User trying to access URL - " + url);
