@@ -1,0 +1,36 @@
+<html>
+<head>
+    <title>
+    $i18n.getText("team.effort.bitbucket.saml.admin.page.title")
+    </title>
+    <meta name="decorator" content="atl.admin">
+    $webResourceManager.requireResource("team.effort.bitbucket-saml-plugin:resources")
+</head>
+<body>
+    <section class="aui-page-panel-content">
+        <header class="aui-page-header">
+            <div class="aui-page-header-inner">
+                <div class="aui-page-header-main">
+                    <h2>$i18n.getText("team.effort.bitbucket.saml.admin.page.header")</h2>
+                </div>
+            </div>
+        </header>
+        <form class="aui prevent-double-submit" accept-charset="utf-8">
+            <fieldset class="group checkbox">
+                <div class="checkbox">
+                    <input class="checkbox" type="checkbox" name="enforceSSO" id="enforceSSO" autofocus>
+                    <label for="enforceSSO">$i18n.getText("team.effort.bitbucket.saml.admin.page.enforceSSO.label")</label>
+                    <div class="description">$i18n.getText("team.effort.bitbucket.saml.admin.page.enforceSSO.description")</div>
+                </div>
+            </fieldset>
+            <div class="buttons-container">
+                <div class="buttons">
+                    <input class="aui-button aui-button-primary" type="button" id="save" name="save" value="$i18n.getText("team.effort.bitbucket.saml.admin.page.save.label")" accesskey="s">
+                    <a id="cancel" class="aui-button aui-button-link cancel" name="$i18n.getText("team.effort.bitbucket.saml.admin.page.cancel.label") " accesskey="c" href="/admin" autocomplete="off" tabindex="0">Cancel</a>
+                    <span class="post"></span>
+                </div>
+            </div>
+        </form>
+    </section>
+</body>
+</html>
